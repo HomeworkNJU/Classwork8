@@ -97,6 +97,7 @@ Python上手的易用性导致了很多非编程专业人士入门编程，积�
   ```
 
 *  
+
   ```Python
   @force_encoded_string_output
   def __repr__(self):
@@ -107,6 +108,7 @@ Python上手的易用性导致了很多非编程专业人士入门编程，积�
   ```
   无
   ```
+
 *  
 
   ```Python
