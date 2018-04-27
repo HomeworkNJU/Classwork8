@@ -276,7 +276,7 @@ class Trader_Shaver(Trader):
 
 
 ## 修改自己的代码
-根据示例的注释，新增自己代码的注释如下。
+根据示例的注释，新增自己代码的注释如下。(具体内容标注在注释中)
 
 ```Python
 def get_blog_list_common_data(request, blogs_all_list):
