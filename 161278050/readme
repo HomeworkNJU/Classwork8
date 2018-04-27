@@ -1,0 +1,259 @@
+COMPILER项目代码分析
+程序名：compiler
+
+来源：https://github.com/gitliuyuhan/compiler/blob/master/compiler.cpp
+
+代码行数：897 lines
+
+程序语言：c++
+
+一、序言性注释：
+
+一个小型的c语言编译器
+
+###目前实现的功能
+
+可以定义多个变量，并且能初始化。
+可以支持基本的加减乘除运算。
+可以支持带括号的多个变量的四则混合运算。
+可以支持单行注释和多行注释。
+可以输出%c格式的字符和%d格式的整数。
+可以定义int 类型和 char类型。
+可以输出字符串
+可以输出2位整数
+可以支持简单的if{}else{}语句。（大于和小于比较条件）
+以上支持的语法可以混合在同一个源程序中。
+部分错误语法可以报错。
+###环境
+
+编辑器：记事本、VC++6.0
+汇编环境：dosbox、emu8086
+汇编器、链接器：MASM、LINK
+汇编语言：8086汇编
+源代码：C++，用VC++6.0 / gcc编译
+###编译方法
+
+目录中的a.out文件是在Linux下编译完成的可执行文件，可以直接运行。
+
+该程序源代码中并未使用 C++11 标准，所以无论是在windows下还是在Linux平台下，只需要按照编译普通C++程序的方法即可。
+
+###运行方法
+
+假设已经编译完成，生成可执行文件名：compiler
+
+假设待编译的c程序为test1.c
+
+####方法1： 直接双击可执行文件运行，根据提示输入待编译的c程序文件test1.c的路径，编译后在该路径下生成相同文件名的test1.asm文件。
+
+####方法2：在终端（windows下为dos）运行下面命令
+
+默认生成相同文件名的.asm汇编文件
+
+compiler test1.c
+可以指定编译生成的文件名和存放位置
+
+compiler test1.c T.asm
+可以使用目录中的测试代码测试结果。
+
+###设计流程
+
+扫源代码 --> 词法分析 --> 语法分析 -->目标代码 --> 汇编代码
+
+二、功能型注释：
+
+
+9-16lines
+#define K_DIGIT       3      //整数
+#define K_CHAR        4      //字符
+#define K_STRING      5      //字符串
+#define K_TYPE        6      //数据类型
+#define K_KEYWORDS    7      //关键字
+#define K_OPERATOR    8      //运算符
+#define K_IDENTIFIER  9      //标识符
+#define K_BRACKET     10     //括号
+全局变量的解释
+//存储分词类型  lines 20-21
+typedef struct IDwords
+//目标代码元素  lines 33-34
+typedef struct Target
+//保存声明变量   lines 44-47
+vector<Variable>      var_table;
+//保存目标代码
+vector<Target>        target_code;
+复杂数据结构的解释
+
+//生成的汇编文件名称    lines 53-54
+string  asmfile(string source)
+//运算符优先级          lines 78-79
+int level(string s)
+//保存到目标代码        lines 94
+void add_target_code(string dsf,string op,string dst,string dsc,string mark,string step)
+//字符转字符串           lines 107
+string char_to_str(char c)
+//是否为运算操作符       lines115
+int is_operator(char c)
+//是否为大括号、小括号、分号 lines 24
+int is_bracket(char c)
+//是否为空白      lines 133
+int is_blank(char c)
+//判断单词类型
+int word_token(string s)
+//词法分析
+void lexical_analysis(string source,vector<IDwords> &AnalysisResults)
+等，函数功能注释
+
+//加减法转化
+		if(it->op == "+" || it->op=="-")
+			addsub_asm(wfile,it->dsf,it->op,it->dst,it->dsc);
+		//乘法转换
+		else if(it->op == "*")
+			mul_asm(wfile,it->dsf,it->dst,it->dsc);
+		//除法转换
+		else if(it->op == "/")
+			div_asm(wfile,it->dsf,it->dst,it->dsc);
+		//赋值运算
+		else if(it->op == "=")
+			sign_asm(wfile,it->dsf,it->dst);
+		//输出操作
+		else if(it->op == "p")
+			print_asm(wfile,it->dsf,it->mark);
+		//if语法分析
+		else if(it->op == "if")
+    
+    （具体程序中的注释）
+    
+ 三、基本成分：
+1.数据成分：
+存储分词的结构
+typedef struct IDwords
+	{
+		int       id;     //标志
+		string    word;   //单词
+	}IDwords;
+
+
+目标代码元素的结构：
+
+typedef struct Target
+	{
+		string    dsf;    //结果
+		string    op;     //操作
+		string    dst;    //目的操作数
+		string    dsc;    //源操作数
+		string    mark;   //标志
+		string    step;   //跳转位置
+	}Target;
+	
+保存的声明变量：
+vector<Variable>      var_table;
+保存目标代码数据
+vector<Target>        target_code;
+其他字符，字符串（string），整型变量。
+
+2.运算成分：
+赋值运算，基本运算（+-*/），字符串运算（合并，截取），逻辑运算(><’==’)
+
+3.控制成分：
+顺序结构；
+循环：
+while(it != AnalysisResults.end())
+	{
+		//遇到printf
+		if(it->word == "printf")
+		{
+			printf_analysis(it);
+		}
+		// if 语句
+		else if(it->word == "if")
+		{
+			if_analysis(it);
+		}
+		else if(it->word == "}")
+			break;
+		//表达式分析
+		else
+		{
+			expression(it); //表达式分析
+		}
+		it++;
+	}
+  
+  条件：
+  //加减法转化
+		if(it->op == "+" || it->op=="-")
+			addsub_asm(wfile,it->dsf,it->op,it->dst,it->dsc);
+		//乘法转换
+		else if(it->op == "*")
+			mul_asm(wfile,it->dsf,it->dst,it->dsc);
+		//除法转换
+		else if(it->op == "/")
+			div_asm(wfile,it->dsf,it->dst,it->dsc);
+		//赋值运算
+		else if(it->op == "=")
+			sign_asm(wfile,it->dsf,it->dst);
+		//输出操作
+		else if(it->op == "p")
+			print_asm(wfile,it->dsf,it->mark);
+		//if语法分析
+		else if(it->op == "if")
+		{
+			if_asm(wfile,it->dst,it->dsc,it->mark,it->step);
+		}
+		else if(it->op == "else")
+		{
+			cout<<"else 没有找到匹配的 if"<<endl;
+			exit(-1);
+		}
+    
+    多情况判断：
+    case 1:
+		    if(is_operator(ch)) //判断操作符
+			{
+				add_keywords(AnalysisResults,K_OPERATOR,char_to_str(ch));
+				break;
+			}
+		case 2:
+		    if(is_bracket(ch)) //大括号、小括号
+			{
+				add_keywords(AnalysisResults,K_BRACKET,char_to_str(ch));
+				break;
+			}
+		case 3:
+			if(is_blank(ch)) //空白符
+				break;
+		case 4:
+			if(ch=='#') //跳过预处理
+			{
+				while(rfile>>ch)
+				{
+					if(is_blank(ch))
+					{
+						break;
+					}
+				}
+        
+4.传输成分：
+数据的保存：
+//保存声明变量
+vector<Variable>      var_table;
+//保存目标代码
+vector<Target>        target_code;
+ 
+输入输出；
+cout<<"*****************************************************"<<endl;
+		cout<<"\n在源文件目录下生成 .asm 汇编文件\n"<<endl;
+		cout<<"*****************************************************"<<endl;
+		cout<<"\n请输入源文件：";
+		cin>>source;
+    
+四、程序风格，语言特性：
+局部性强，模块功能详细，相互独立。
+结构清晰：不同功能对应的不同函数，不同情景的不同处理都很清楚。
+项目简单，易懂，注释清楚，明确语言风格简洁易懂。
+
+五、代码总体符合规范，未找到需要该的地方。
+
+ 
+    
+
+
